@@ -74,6 +74,9 @@ const AdminDashboard: NextPage = () => {
           <button onClick={() => router.push('/admin/settings')} className="btn secondary">
             ⚙️ Settings
           </button>
+          <button onClick={() => router.push('/admin/services')} className="btn tertiary">
+            🔗 Manage Services
+          </button>
           <button onClick={handleLogout} className="btn" style={{ background: 'linear-gradient(135deg, #eb3349 0%, #f45c43 100%)' }}>
             🚪 Logout
           </button>
