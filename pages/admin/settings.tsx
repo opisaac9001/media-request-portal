@@ -194,7 +194,12 @@ const AdminSettings: NextPage = () => {
   return (
     <Layout>
       <div className="container">
-        <h1>Admin Settings</h1>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <h1 style={{ margin: 0 }}>Admin Settings</h1>
+          <Link href="/admin/dashboard">
+            <a className="btn secondary" style={{ margin: 0 }}>← Back to Dashboard</a>
+          </Link>
+        </div>
         <p>Configure your Plex, Sonarr, and Radarr integration settings below.</p>
 
         {message && (

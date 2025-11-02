@@ -30,7 +30,7 @@ const AdminLogin: NextPage = () => {
       if (result.success) {
         // Add a small delay to ensure cookie is set
         await new Promise(resolve => setTimeout(resolve, 100));
-        router.push('/admin/settings');
+        router.push('/admin/dashboard');
       } else {
         setError(result.message || 'Invalid credentials');
       }
