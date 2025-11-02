@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, FormEvent } from 'react';
 
 const MediaRequestForm = () => {
     const [mediaTitle, setMediaTitle] = useState('');
     const [mediaType, setMediaType] = useState('show');
     const [error, setError] = useState('');
 
-    const handleSubmit = (e) => {
+    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (!mediaTitle) {
             setError('Media title is required');

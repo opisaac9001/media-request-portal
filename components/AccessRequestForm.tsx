@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, FormEvent } from 'react';
 
 const AccessRequestForm = () => {
     const [email, setEmail] = useState('');
@@ -6,7 +6,7 @@ const AccessRequestForm = () => {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError('');
         setSuccess(false);
@@ -33,7 +33,7 @@ const AccessRequestForm = () => {
             setEmail('');
             setReason('');
         } catch (err) {
-            setError(err.message);
+            setError(err instanceof Error ? err.message : 'An error occurred');
         }
     };
 
