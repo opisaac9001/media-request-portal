@@ -60,7 +60,9 @@ const AdminSettings: NextPage = () => {
     // Check if user is authenticated and load settings
     const loadSettings = async () => {
       try {
-        const response = await fetch('/api/admin/settings');
+        const response = await fetch('/api/admin/settings', {
+          credentials: 'include', // Important: include cookies
+        });
         const result = await response.json();
 
         if (result.authenticated === false) {
@@ -73,6 +75,7 @@ const AdminSettings: NextPage = () => {
         }
       } catch (error) {
         console.error('Failed to load settings:', error);
+        router.push('/admin/login');
       } finally {
         setIsLoading(false);
       }
@@ -93,6 +96,7 @@ const AdminSettings: NextPage = () => {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // Important: include cookies
         body: JSON.stringify(settings),
       });
 

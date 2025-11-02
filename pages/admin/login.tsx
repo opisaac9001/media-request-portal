@@ -21,12 +21,15 @@ const AdminLogin: NextPage = () => {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // Important: include cookies
         body: JSON.stringify({ username, password }),
       });
 
       const result = await response.json();
 
       if (result.success) {
+        // Add a small delay to ensure cookie is set
+        await new Promise(resolve => setTimeout(resolve, 100));
         router.push('/admin/settings');
       } else {
         setError(result.message || 'Invalid credentials');
