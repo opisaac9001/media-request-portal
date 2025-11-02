@@ -95,12 +95,12 @@ const AdminDashboard: NextPage = () => {
             gap: '20px', 
             marginTop: '20px' 
           }}>
-            {services.map((service, index) => (
+            {services.map((service, index) => {
+              const serviceSlug = service.name.toLowerCase().replace(/\s+/g, '-');
+              return (
               <a
                 key={index}
-                href={service.url}
-                target="_blank"
-                rel="noopener noreferrer"
+                href={`/service/${serviceSlug}`}
                 style={{
                   padding: '25px',
                   background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)',
@@ -125,8 +125,12 @@ const AdminDashboard: NextPage = () => {
                 <div style={{ fontSize: '2em', marginBottom: '10px' }}>{service.icon}</div>
                 <h3 style={{ color: '#667eea', marginBottom: '8px', marginTop: '0' }}>{service.name}</h3>
                 <p style={{ margin: '0', fontSize: '0.9em', color: '#666' }}>{service.description}</p>
+                <p style={{ margin: '5px 0 0 0', fontSize: '0.75em', color: '#999' }}>
+                  Click to open (authenticated)
+                </p>
               </a>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
