@@ -25,7 +25,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       sameSite: 'lax',
       maxAge: 60 * 60 * 24, // 24 hours
       path: '/',
+      domain: undefined, // Don't set domain to work with any hostname
     });
+    
+    // Also log for debugging
+    console.log('Setting cookie for user:', username);
 
     res.setHeader('Set-Cookie', cookie);
     

@@ -5,7 +5,10 @@ import path from 'path';
 // Helper function to check authentication
 function isAuthenticated(req: NextApiRequest): boolean {
   const cookies = req.cookies;
-  return !!cookies.admin_session;
+  console.log('Checking auth, cookies:', cookies);
+  const hasSession = !!cookies.admin_session;
+  console.log('Has admin_session:', hasSession);
+  return hasSession;
 }
 
 // Helper function to read .env.local
