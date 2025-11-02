@@ -1,0 +1,33 @@
+{
+  "name": "media-request-portal",
+  "version": "1.0.0",
+  "description": "A web application for requesting shows, movies, and access to a Plex server.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "keywords": [
+    "Plex",
+    "media",
+    "requests",
+    "access"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "cookie": "^1.0.2",
+    "next": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "typescript": "latest"
+  },
+  "devDependencies": {
+    "@types/cookie": "^0.6.0",
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "eslint": "latest",
+    "eslint-config-next": "latest"
+  }
+}
