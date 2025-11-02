@@ -84,6 +84,18 @@ const AdminDashboard: NextPage = () => {
 
         <h2 style={{ marginTop: '40px' }}>Protected Services</h2>
         
+        <div style={{ 
+          padding: '15px 20px', 
+          background: 'rgba(102, 126, 234, 0.1)', 
+          borderRadius: '12px',
+          border: '2px solid #667eea',
+          marginBottom: '20px'
+        }}>
+          <p style={{ margin: 0, color: '#667eea', fontWeight: 600 }}>
+            💡 <strong>Tip:</strong> Use the same password for these services that you used to log in here for seamless access.
+          </p>
+        </div>
+        
         {services.length === 0 ? (
           <p style={{ color: '#888', fontStyle: 'italic' }}>
             No services configured yet. Go to Settings to add services.
@@ -95,12 +107,12 @@ const AdminDashboard: NextPage = () => {
             gap: '20px', 
             marginTop: '20px' 
           }}>
-            {services.map((service, index) => {
-              const serviceSlug = service.name.toLowerCase().replace(/\s+/g, '-');
-              return (
+            {services.map((service, index) => (
               <a
                 key={index}
-                href={`/service/${serviceSlug}`}
+                href={service.url}
+                target="_blank"
+                rel="noopener noreferrer"
                 style={{
                   padding: '25px',
                   background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)',
@@ -126,11 +138,10 @@ const AdminDashboard: NextPage = () => {
                 <h3 style={{ color: '#667eea', marginBottom: '8px', marginTop: '0' }}>{service.name}</h3>
                 <p style={{ margin: '0', fontSize: '0.9em', color: '#666' }}>{service.description}</p>
                 <p style={{ margin: '5px 0 0 0', fontSize: '0.75em', color: '#999' }}>
-                  Click to open (authenticated)
+                  🔗 Opens in new tab
                 </p>
               </a>
-              );
-            })}
+            ))}
           </div>
         )}
       </div>
