@@ -85,8 +85,8 @@ async function addToSonarr(title: string, contentType: 'tv_show' | 'anime' | 'ad
     // Use the same Sonarr instance for all types
     const sonarrApiKey = process.env.SONARR_API_KEY;
     const sonarrBaseUrl = process.env.SONARR_BASE_URL;
-    const qualityProfile = parseInt(process.env.SONARR_QUALITY_PROFILE || '1');
-    const languageProfile = parseInt(process.env.SONARR_LANGUAGE_PROFILE || '1');
+    const qualityProfile = parseInt(process.env.SONARR_QUALITY_PROFILE || '1', 10);
+    const languageProfile = parseInt(process.env.SONARR_LANGUAGE_PROFILE || '1', 10);
     
     let rootFolder: string;
     let seriesType: string;

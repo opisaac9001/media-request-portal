@@ -72,7 +72,7 @@ async function sendPlexInvite(email: string): Promise<PlexResponse> {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
-    const { authorization_phrase, name, email, message } = req.body;
+    const { authorization_phrase, email } = req.body;
 
     // Validate authorization phrase
     if (authorization_phrase !== process.env.AUTHORIZATION_PHRASE) {
@@ -83,10 +83,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // Validate required fields
-    if (!name || !email) {
+    if (!email) {
       return res.status(400).json({
         success: false,
-        message: 'Name and email are required.',
+        message: 'Email is required.',
       });
     }
 
@@ -94,7 +94,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const result = await sendPlexInvite(email);
 
     // Log the request (optional - you could save to a database here)
-    console.log(`Access request from ${name} (${email}): ${message || 'No message'}`);
+    console.log(`Access request for ${email}`);
 
     return res.status(result.success ? 200 : 500).json(result);
   } else {
