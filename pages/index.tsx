@@ -17,7 +17,9 @@ const Home: NextPage = () => {
           <Link href="/requests" className="btn secondary">
             📺 Request Media Content
           </Link>
-          <a href="#" className="btn tertiary disabled">🎧 Audiobooks (Coming Soon)</a>
+          <Link href="/audiobooks" className="btn tertiary">
+            🎧 Request Audiobook Access
+          </Link>
           <a href="#" className="btn quaternary disabled">🎮 Game Servers (Coming Soon)</a>
         </div>
         <Link href="/admin/login" className="admin-link">

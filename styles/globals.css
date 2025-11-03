@@ -274,6 +274,40 @@ small {
   margin-top: 5px;
 }
 
+.credentials-box {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 25px;
+  border-radius: 16px;
+  margin: 25px 0;
+  color: #fff;
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+  animation: slideDown 0.5s ease-out;
+}
+
+.credentials-box h3 {
+  margin: 0 0 15px 0;
+  font-size: 1.4em;
+}
+
+.credentials-box p {
+  margin: 10px 0;
+  font-size: 1.1em;
+  line-height: 1.6;
+}
+
+.credentials-box p strong {
+  display: inline-block;
+  min-width: 100px;
+}
+
+.credentials-box .note {
+  font-size: 0.95em;
+  opacity: 0.9;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
+}
+
 @media (max-width: 768px) {
   .container { margin: 20px auto; padding: 30px 20px; }
   h1 { font-size: 2.2em; }
