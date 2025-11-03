@@ -45,11 +45,9 @@ async function sendPlexInvite(email: string): Promise<PlexResponse> {
         'Accept': 'application/json',
       },
       body: JSON.stringify({
-        server_id: machineId,
-        shared_server: {
-          library_section_ids: libraryIds, // Empty array shares all libraries, specific IDs share only those
-          invited_email: email,
-        },
+        machineIdentifier: machineId,
+        librarySectionIds: libraryIds, // Empty array shares all libraries, specific IDs share only those
+        invitedEmail: email,
       }),
     });
 
