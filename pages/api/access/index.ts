@@ -40,6 +40,7 @@ async function sendPlexInvite(email: string): Promise<PlexResponse> {
       method: 'POST',
       headers: {
         'X-Plex-Token': plexToken,
+        'X-Plex-Client-Identifier': 'media-request-portal',
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
