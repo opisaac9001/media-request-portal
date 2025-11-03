@@ -9,6 +9,7 @@ interface InviteCode {
   createdBy: string;
   usedBy?: string;
   usedAt?: number;
+  usedFor?: 'plex' | 'registration';
   isActive: boolean;
 }
 

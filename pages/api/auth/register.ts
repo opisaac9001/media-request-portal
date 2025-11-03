@@ -48,6 +48,7 @@ interface InviteCode {
   createdBy: string;
   usedBy?: string;
   usedAt?: number;
+  usedFor?: 'plex' | 'registration';
   isActive: boolean;
 }
 
@@ -160,9 +161,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     users.push(newUser);
     saveUsers(users);
 
-    // Mark invite code as used
+    // Mark invite code as used for registration
     inviteCodes[inviteCodeIndex].usedBy = username;
     inviteCodes[inviteCodeIndex].usedAt = Date.now();
+    inviteCodes[inviteCodeIndex].usedFor = 'registration';
     saveInviteCodes(inviteCodes);
 
     console.log(`New user registered: ${username} (${email}) using invite code: ${invite_code}`);

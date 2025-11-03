@@ -10,6 +10,7 @@ interface InviteCode {
   createdBy: string;
   usedBy?: string;
   usedAt?: number;
+  usedFor?: 'plex' | 'registration';
   isActive: boolean;
 }
 
@@ -117,7 +118,10 @@ const InviteCodesPage: NextPage = () => {
       <div className="container">
         <h1>User Invite Codes</h1>
         <p style={{ textAlign: 'center', marginBottom: '30px' }}>
-          Manage invite codes for user registration
+          Manage invite codes for user registration and Plex access
+        </p>
+        <p style={{ textAlign: 'center', marginBottom: '30px', fontSize: '0.9em', color: 'rgba(255,255,255,0.7)' }}>
+          Each code can be used once for either Plex access (creates account + sends Plex invite) or registration (creates account only)
         </p>
 
         {message && (
@@ -169,6 +173,7 @@ const InviteCodesPage: NextPage = () => {
                   <th style={{ padding: '15px', textAlign: 'center' }}>Status</th>
                   <th style={{ padding: '15px', textAlign: 'left' }}>Created</th>
                   <th style={{ padding: '15px', textAlign: 'left' }}>Used By</th>
+                  <th style={{ padding: '15px', textAlign: 'left' }}>Used For</th>
                   <th style={{ padding: '15px', textAlign: 'left' }}>Used At</th>
                   <th style={{ padding: '15px', textAlign: 'center' }}>Actions</th>
                 </tr>
@@ -176,7 +181,7 @@ const InviteCodesPage: NextPage = () => {
               <tbody>
                 {inviteCodes.length === 0 ? (
                   <tr>
-                    <td colSpan={6} style={{ padding: '30px', textAlign: 'center', color: '#999' }}>
+                    <td colSpan={7} style={{ padding: '30px', textAlign: 'center', color: '#999' }}>
                       No invite codes yet. Generate one to get started!
                     </td>
                   </tr>
@@ -227,6 +232,21 @@ const InviteCodesPage: NextPage = () => {
                       </td>
                       <td style={{ padding: '15px', fontSize: '0.9em', color: '#666' }}>
                         {code.usedBy || '-'}
+                      </td>
+                      <td style={{ padding: '15px', fontSize: '0.9em', color: '#666' }}>
+                        {code.usedFor ? (
+                          <span style={{
+                            padding: '3px 10px',
+                            borderRadius: '8px',
+                            background: code.usedFor === 'plex' ? '#E91E63' : '#2196F3',
+                            color: '#fff',
+                            fontSize: '0.85em',
+                            fontWeight: '600',
+                            textTransform: 'capitalize'
+                          }}>
+                            {code.usedFor === 'plex' ? '🎬 Plex' : '📝 Registration'}
+                          </span>
+                        ) : '-'}
                       </td>
                       <td style={{ padding: '15px', fontSize: '0.9em', color: '#666' }}>
                         {code.usedAt ? formatDate(code.usedAt) : '-'}
