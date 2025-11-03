@@ -14,6 +14,9 @@ COPY . .
 # Build the application
 RUN npm run build
 
+# Create data directory for user storage
+RUN mkdir -p /app/data
+
 # Set environment
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1

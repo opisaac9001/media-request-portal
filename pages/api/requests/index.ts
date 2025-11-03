@@ -190,8 +190,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method === 'POST') {
     const { authorization_phrase, content_type, title, user_email } = req.body;
 
-    // Validate authorization phrase
-    if (authorization_phrase !== process.env.AUTHORIZATION_PHRASE) {
+    // Check if user is logged in via session
+    const cookies = req.headers.cookie || '';
+    const sessionMatch = cookies.match(/user_session=([^;]+)/);
+    let isAuthenticated = false;
+    let username = '';
+
+    if (sessionMatch) {
+      const fs = require('fs');
+      const path = require('path');
+      const sessionFile = path.join(process.cwd(), 'data', 'sessions.json');
+      
+      if (fs.existsSync(sessionFile)) {
+        try {
+          const sessions = JSON.parse(fs.readFileSync(sessionFile, 'utf-8'));
+          const session = sessions[sessionMatch[1]];
+          if (session) {
+            isAuthenticated = true;
+            username = session.username;
+          }
+        } catch (error) {
+          // Session check failed, continue to authorization phrase check
+        }
+      }
+    }
+
+    // Validate authorization phrase (skip if logged in)
+    if (!isAuthenticated && authorization_phrase !== process.env.AUTHORIZATION_PHRASE) {
       return res.status(401).json({
         success: false,
         message: 'Incorrect authorization phrase.',
@@ -228,7 +253,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // Log the request (optional - you could save to a database here)
-    console.log(`Content request: ${content_type} - "${title}" from ${user_email || 'anonymous'}`);
+    const requester = isAuthenticated ? `user: ${username}` : (user_email || 'anonymous');
+    console.log(`Content request: ${content_type} - "${title}" from ${requester}`);
 
     return res.status(result.success ? 200 : 500).json(result);
   } else {

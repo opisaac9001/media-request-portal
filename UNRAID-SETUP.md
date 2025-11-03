@@ -32,6 +32,10 @@ Add a new container in Unraid with these settings:
 - **Host Path:** `/mnt/user/appdata/media-request-portal/.env.local`
 - **Access Mode:** `Read/Write`
 
+- **Container Path:** `/app/data`
+- **Host Path:** `/mnt/user/appdata/media-request-portal/data`
+- **Access Mode:** `Read/Write`
+
 **Environment Variables:**
 Load from file at: `/mnt/user/appdata/media-request-portal/.env.local`
 
@@ -90,6 +94,7 @@ docker run -d \
   --name media-request-portal \
   -p 48532:3000 \
   -v /mnt/user/appdata/media-request-portal/.env.local:/app/.env.local:rw \
+  -v /mnt/user/appdata/media-request-portal/data:/app/data:rw \
   --restart unless-stopped \
   media-request-portal
 ```
@@ -97,6 +102,7 @@ docker run -d \
 ## Benefits of This Setup
 
 ✅ Your `.env.local` configuration persists across container rebuilds
+✅ User accounts and sessions persist across container rebuilds
 ✅ No need to re-enter API keys and passwords
 ✅ Easy to backup (just backup `/mnt/user/appdata/media-request-portal/`)
 ✅ Standard Unraid appdata location

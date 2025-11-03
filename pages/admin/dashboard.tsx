@@ -80,6 +80,9 @@ const AdminDashboard: NextPage = () => {
           <button onClick={() => router.push('/admin/audiobookshelf-users')} className="btn quaternary">
             🎧 AudiobookShelf Users
           </button>
+          <button onClick={() => router.push('/admin/invite-codes')} className="btn" style={{ background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' }}>
+            🎫 Invite Codes
+          </button>
           <button onClick={handleLogout} className="btn" style={{ background: 'linear-gradient(135deg, #eb3349 0%, #f45c43 100%)' }}>
             🚪 Logout
           </button>

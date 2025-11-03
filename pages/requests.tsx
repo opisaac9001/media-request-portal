@@ -7,6 +7,29 @@ const RequestsPage: NextPage = () => {
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error' | ''>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [username, setUsername] = useState('');
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
+  useState(() => {
+    // Check if user is logged in
+    fetch('/api/auth/check', { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => {
+        if (data.authenticated) {
+          setIsLoggedIn(true);
+          setUsername(data.username);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setCheckingAuth(false));
+  });
+
+  const handleLogout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+    setIsLoggedIn(false);
+    setUsername('');
+  };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -16,7 +39,7 @@ const RequestsPage: NextPage = () => {
 
     const formData = new FormData(e.currentTarget);
     const data = {
-      authorization_phrase: formData.get('authorization_phrase'),
+      authorization_phrase: formData.get('authorization_phrase') || undefined,
       content_type: formData.get('content_type'),
       title: formData.get('title'),
     };
@@ -27,6 +50,7 @@ const RequestsPage: NextPage = () => {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(data),
       });
 
@@ -54,6 +78,37 @@ const RequestsPage: NextPage = () => {
         <h1>Request Content for Plex</h1>
         <p>Tell us what content you'd like to see added!</p>
 
+        {isLoggedIn && (
+          <div style={{ 
+            padding: '15px 20px', 
+            background: 'rgba(76, 175, 80, 0.1)', 
+            borderRadius: '12px',
+            border: '2px solid #4caf50',
+            marginBottom: '20px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+            <span style={{ color: '#4caf50', fontWeight: 600 }}>
+              ✓ Logged in as: {username}
+            </span>
+            <button
+              onClick={handleLogout}
+              style={{
+                padding: '6px 16px',
+                background: '#f44336',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontWeight: '600'
+              }}
+            >
+              Logout
+            </button>
+          </div>
+        )}
+
         {message && (
           <div className={`flashes ${messageType}`}>
             {message}
@@ -61,15 +116,19 @@ const RequestsPage: NextPage = () => {
         )}
 
         <form onSubmit={handleSubmit}>
-          <label htmlFor="authorization_phrase">Authorization Phrase:</label>
-          <input 
-            type="password" 
-            id="authorization_phrase" 
-            name="authorization_phrase" 
-            required 
-            disabled={isSubmitting}
-            placeholder="Enter the secret phrase"
-          />
+          {!isLoggedIn && (
+            <>
+              <label htmlFor="authorization_phrase">Authorization Phrase:</label>
+              <input 
+                type="password" 
+                id="authorization_phrase" 
+                name="authorization_phrase" 
+                required 
+                disabled={isSubmitting}
+                placeholder="Enter the secret phrase"
+              />
+            </>
+          )}
 
           <label htmlFor="content_type">Content Type:</label>
           <select 
