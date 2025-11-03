@@ -39,3 +39,11 @@ next-env.d.ts
 *.swp
 *.swo
 *~
+
+# User data files - NEVER COMMIT THESE (contains passwords, sessions, etc.)
+data/
+# Specifically ignore these sensitive files
+data/users.json
+data/sessions.json
+data/invite-codes.json
+data/rate-limits.json

@@ -1,10 +1,16 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { serialize } from 'cookie';
 import crypto from 'crypto';
+import { checkRateLimit, recordFailedAttempt, resetRateLimit } from './rate-limits';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Method not allowed' });
+  }
+
+  // Check rate limit before processing
+  if (!checkRateLimit(req, res)) {
+    return; // Response already sent by checkRateLimit
   }
 
   const { username, password } = req.body;
@@ -15,6 +21,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // Simple authentication check
   if (username === adminUsername && password === adminPassword) {
+    // Reset rate limit on successful login
+    resetRateLimit(req);
     // Generate a simple session token
     const token = crypto.randomBytes(32).toString('hex');
     
@@ -38,6 +46,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       message: 'Login successful',
     });
   } else {
+    recordFailedAttempt(req);
+    console.log(`Failed admin login attempt for user: ${username}`);
     return res.status(401).json({
       success: false,
       message: 'Invalid username or password',

@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
+import { checkRateLimit, recordFailedAttempt, resetRateLimit } from '../admin/rate-limits';
 
 interface User {
   id: string;
@@ -30,9 +31,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
+  // Check rate limit before processing
+  if (!checkRateLimit(req, res)) {
+    return; // Response already sent by checkRateLimit
+  }
+
   const { username, password } = req.body;
 
   if (!username || !password) {
+    recordFailedAttempt(req);
     return res.status(400).json({
       success: false,
       message: 'Username and password are required.',
@@ -44,6 +51,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const user = users.find((u) => u.username.toLowerCase() === username.toLowerCase());
 
     if (!user || user.password !== hashPassword(password)) {
+      recordFailedAttempt(req);
+      console.log(`Failed login attempt for user: ${username}`);
       return res.status(401).json({
         success: false,
         message: 'Invalid username or password.',
@@ -72,6 +81,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     
     fs.writeFileSync(sessionFile, JSON.stringify(sessions, null, 2));
 
+    // Reset rate limit on successful login
+    resetRateLimit(req);
+    
     console.log(`User logged in: ${username}`);
 
     return res.status(200).json({

@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
+import { checkRateLimit, recordFailedAttempt } from '../admin/rate-limits';
 
 interface User {
   id: string;
@@ -67,6 +68,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
+  // Check rate limit before processing
+  if (!checkRateLimit(req, res)) {
+    return; // Response already sent by checkRateLimit
+  }
+
   const { invite_code, username, email, password } = req.body;
 
   // Validate required fields
@@ -84,6 +90,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   );
 
   if (inviteCodeIndex === -1) {
+    recordFailedAttempt(req);
+    console.log(`Failed registration attempt with invalid invite code: ${invite_code}`);
     return res.status(401).json({
       success: false,
       message: 'Invalid or already used invite code.',
