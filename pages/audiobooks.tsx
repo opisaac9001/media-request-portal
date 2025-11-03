@@ -17,10 +17,22 @@ const AudiobooksAccessPage: NextPage = () => {
     setCredentials(null);
 
     const formData = new FormData(e.currentTarget);
+    const password = formData.get('password') as string;
+    const confirmPassword = formData.get('confirm_password') as string;
+
+    // Validate password match
+    if (password !== confirmPassword) {
+      setMessageType('error');
+      setMessage('Passwords do not match.');
+      setIsSubmitting(false);
+      return;
+    }
+
     const data = {
       authorization_phrase: formData.get('authorization_phrase'),
       email: formData.get('email'),
       username: formData.get('username'),
+      password: password,
     };
 
     try {
@@ -107,6 +119,33 @@ const AudiobooksAccessPage: NextPage = () => {
             disabled={isSubmitting}
             placeholder="email@example.com"
           />
+
+          <label htmlFor="password">Create Password:</label>
+          <input 
+            type="password" 
+            id="password" 
+            name="password" 
+            required 
+            disabled={isSubmitting}
+            placeholder="Choose a secure password"
+            minLength={8}
+            pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}"
+            title="Password must be at least 8 characters and contain: uppercase, lowercase, number, and special character (@$!%*?&)"
+          />
+
+          <label htmlFor="confirm_password">Confirm Password:</label>
+          <input 
+            type="password" 
+            id="confirm_password" 
+            name="confirm_password" 
+            required 
+            disabled={isSubmitting}
+            placeholder="Re-enter your password"
+          />
+
+          <small style={{ color: '#666', marginTop: '-10px', marginBottom: '15px' }}>
+            Password must be at least 8 characters and include: uppercase, lowercase, number, and special character (@$!%*?&)
+          </small>
 
           <button type="submit" className="btn" disabled={isSubmitting}>
             {isSubmitting ? 'Creating Account...' : 'Request Access'}

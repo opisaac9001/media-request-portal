@@ -1,5 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import crypto from 'crypto';
 
 interface AudiobookShelfResponse {
   success: boolean;
@@ -8,18 +7,6 @@ interface AudiobookShelfResponse {
     username: string;
     password: string;
   };
-}
-
-function generatePassword(length: number = 16): string {
-  const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
-  let password = '';
-  const randomBytes = crypto.randomBytes(length);
-  
-  for (let i = 0; i < length; i++) {
-    password += charset[randomBytes[i] % charset.length];
-  }
-  
-  return password;
 }
 
 async function createAudiobookShelfUser(username: string, password: string): Promise<AudiobookShelfResponse> {
@@ -81,7 +68,7 @@ async function createAudiobookShelfUser(username: string, password: string): Pro
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
-    const { authorization_phrase, username, email } = req.body;
+    const { authorization_phrase, username, email, password } = req.body;
 
     // Validate authorization phrase
     if (authorization_phrase !== process.env.AUTHORIZATION_PHRASE) {
@@ -92,10 +79,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // Validate required fields
-    if (!username || !email) {
+    if (!username || !email || !password) {
       return res.status(400).json({
         success: false,
-        message: 'Username and email are required.',
+        message: 'Username, email, and password are required.',
       });
     }
 
@@ -107,8 +94,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    // Generate secure password
-    const password = generatePassword(16);
+    // Validate password requirements
+    if (password.length < 8) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be at least 8 characters long.',
+      });
+    }
+
+    if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/.test(password)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must contain uppercase, lowercase, number, and special character (@$!%*?&).',
+      });
+    }
 
     // Create AudiobookShelf user
     const result = await createAudiobookShelfUser(username, password);
