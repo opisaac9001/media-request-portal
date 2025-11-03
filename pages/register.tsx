@@ -69,7 +69,7 @@ const RegisterPage: NextPage = () => {
     <Layout>
       <div className="container">
         <h1>Create Account</h1>
-        <p>You need an invite code from the admin to create an account. Once registered, you can request media content without entering the authorization phrase each time.</p>
+        <p style={{ color: 'rgba(255, 255, 255, 0.9)' }}>You need an invite code from the admin to create an account. Once registered, you can request media content without entering the authorization phrase each time.</p>
 
         {message && (
           <div className={`flashes ${messageType}`}>
@@ -135,7 +135,7 @@ const RegisterPage: NextPage = () => {
             placeholder="Re-enter your password"
           />
 
-          <small style={{ color: '#666', marginTop: '-10px', marginBottom: '15px' }}>
+          <small style={{ color: 'rgba(255, 255, 255, 0.7)', marginTop: '-10px', marginBottom: '15px', display: 'block' }}>
             Password must be at least 8 characters and include: uppercase, lowercase, number, and special character (@$!%*?&)
           </small>
 

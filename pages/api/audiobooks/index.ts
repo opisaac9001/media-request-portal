@@ -1,4 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import fs from 'fs';
+import path from 'path';
+import crypto from 'crypto';
 
 interface AudiobookShelfResponse {
   success: boolean;
@@ -7,6 +10,69 @@ interface AudiobookShelfResponse {
     username: string;
     password: string;
   };
+}
+
+interface User {
+  id: string;
+  username: string;
+  email: string;
+  password: string;
+  createdAt: number;
+  isAdmin?: boolean;
+}
+
+interface InviteCode {
+  code: string;
+  createdAt: number;
+  createdBy: string;
+  usedBy?: string;
+  usedAt?: number;
+  usedFor?: 'plex' | 'registration' | 'audiobooks';
+  isActive: boolean;
+}
+
+const DATA_DIR = path.join(process.cwd(), 'data');
+const USERS_FILE = path.join(DATA_DIR, 'users.json');
+const INVITE_CODES_FILE = path.join(DATA_DIR, 'invite-codes.json');
+
+function ensureDataDir() {
+  if (!fs.existsSync(DATA_DIR)) {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+  }
+}
+
+function readUsers(): User[] {
+  ensureDataDir();
+  if (!fs.existsSync(USERS_FILE)) {
+    return [];
+  }
+  const data = fs.readFileSync(USERS_FILE, 'utf-8');
+  const parsed = JSON.parse(data);
+  return Array.isArray(parsed) ? parsed : (parsed.users || []);
+}
+
+function writeUsers(users: User[]) {
+  ensureDataDir();
+  fs.writeFileSync(USERS_FILE, JSON.stringify({ users }, null, 2));
+}
+
+function readInviteCodes(): InviteCode[] {
+  ensureDataDir();
+  if (!fs.existsSync(INVITE_CODES_FILE)) {
+    return [];
+  }
+  const data = fs.readFileSync(INVITE_CODES_FILE, 'utf-8');
+  const parsed = JSON.parse(data);
+  return Array.isArray(parsed) ? parsed : (parsed.codes || []);
+}
+
+function writeInviteCodes(codes: InviteCode[]) {
+  ensureDataDir();
+  fs.writeFileSync(INVITE_CODES_FILE, JSON.stringify({ codes }, null, 2));
+}
+
+function hashPassword(password: string): string {
+  return crypto.createHash('sha256').update(password).digest('hex');
 }
 
 async function createAudiobookShelfUser(username: string, password: string): Promise<AudiobookShelfResponse> {
@@ -68,21 +134,49 @@ async function createAudiobookShelfUser(username: string, password: string): Pro
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
-    const { authorization_phrase, username, email, password } = req.body;
+    const { invite_code, username, email, password } = req.body;
 
-    // Validate authorization phrase
-    if (authorization_phrase !== process.env.AUTHORIZATION_PHRASE) {
-      return res.status(401).json({
+    // Validate required fields
+    if (!invite_code || !username || !email || !password) {
+      return res.status(400).json({
         success: false,
-        message: 'Incorrect authorization phrase.',
+        message: 'All fields are required.',
       });
     }
 
-    // Validate required fields
-    if (!username || !email || !password) {
+    // Validate invite code
+    const inviteCodes = readInviteCodes();
+    const codeIndex = inviteCodes.findIndex(c => c.code === invite_code);
+    
+    if (codeIndex === -1) {
       return res.status(400).json({
         success: false,
-        message: 'Username, email, and password are required.',
+        message: 'Invalid invite code.',
+      });
+    }
+
+    const inviteCode = inviteCodes[codeIndex];
+
+    if (!inviteCode.isActive || inviteCode.usedBy) {
+      return res.status(400).json({
+        success: false,
+        message: 'This invite code has already been used or is no longer active.',
+      });
+    }
+
+    // Check if username or email already exists
+    const users = readUsers();
+    if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
+      return res.status(400).json({
+        success: false,
+        message: 'Username already exists.',
+      });
+    }
+
+    if (users.some(u => u.email.toLowerCase() === email.toLowerCase())) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email already registered.',
       });
     }
 
@@ -109,13 +203,40 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
+    // Create new user in portal
+    const newUser: User = {
+      id: crypto.randomUUID(),
+      username,
+      email,
+      password: hashPassword(password),
+      createdAt: Date.now(),
+      isAdmin: false,
+    };
+
+    users.push(newUser);
+    writeUsers(users);
+
+    // Mark invite code as used for audiobooks
+    inviteCode.usedBy = username;
+    inviteCode.usedAt = Date.now();
+    inviteCode.usedFor = 'audiobooks';
+    inviteCodes[codeIndex] = inviteCode;
+    writeInviteCodes(inviteCodes);
+
     // Create AudiobookShelf user
     const result = await createAudiobookShelfUser(username, password);
 
-    // Log the request
-    console.log(`AudiobookShelf access request for ${username} (${email})`);
+    if (!result.success) {
+      console.error(`AudiobookShelf creation failed for ${username}:`, result.message);
+      return res.status(500).json({
+        success: false,
+        message: `Portal account created, but there was an issue creating the AudiobookShelf account: ${result.message}. Please contact the administrator.`,
+      });
+    }
 
-    return res.status(result.success ? 200 : 500).json(result);
+    console.log(`AudiobookShelf account created for ${username} (${email})`);
+
+    return res.status(200).json(result);
   } else {
     res.status(405).json({ message: 'Method not allowed' });
   }

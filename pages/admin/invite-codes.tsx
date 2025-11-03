@@ -10,7 +10,7 @@ interface InviteCode {
   createdBy: string;
   usedBy?: string;
   usedAt?: number;
-  usedFor?: 'plex' | 'registration';
+  usedFor?: 'plex' | 'registration' | 'audiobooks';
   isActive: boolean;
 }
 
@@ -118,10 +118,10 @@ const InviteCodesPage: NextPage = () => {
       <div className="container">
         <h1>User Invite Codes</h1>
         <p style={{ textAlign: 'center', marginBottom: '30px' }}>
-          Manage invite codes for user registration and Plex access
+          Manage invite codes for user registration and service access
         </p>
         <p style={{ textAlign: 'center', marginBottom: '30px', fontSize: '0.9em', color: 'rgba(255,255,255,0.7)' }}>
-          Each code can be used once for either Plex access (creates account + sends Plex invite) or registration (creates account only)
+          Each code can be used once for Plex access (account + Plex invite), AudiobookShelf (account + audiobook access), or registration (account only)
         </p>
 
         {message && (
@@ -238,13 +238,13 @@ const InviteCodesPage: NextPage = () => {
                           <span style={{
                             padding: '3px 10px',
                             borderRadius: '8px',
-                            background: code.usedFor === 'plex' ? '#E91E63' : '#2196F3',
+                            background: code.usedFor === 'plex' ? '#E91E63' : code.usedFor === 'audiobooks' ? '#FF9800' : '#2196F3',
                             color: '#fff',
                             fontSize: '0.85em',
                             fontWeight: '600',
                             textTransform: 'capitalize'
                           }}>
-                            {code.usedFor === 'plex' ? '🎬 Plex' : '📝 Registration'}
+                            {code.usedFor === 'plex' ? '🎬 Plex' : code.usedFor === 'audiobooks' ? '📚 Audiobooks' : '📝 Registration'}
                           </span>
                         ) : '-'}
                       </td>

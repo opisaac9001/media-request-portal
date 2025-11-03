@@ -23,7 +23,7 @@ interface InviteCode {
   createdBy: string;
   usedBy?: string;
   usedAt?: number;
-  usedFor?: 'plex' | 'registration';
+  usedFor?: 'plex' | 'registration' | 'audiobooks';
   isActive: boolean;
 }
 

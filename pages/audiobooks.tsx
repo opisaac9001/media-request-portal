@@ -29,7 +29,7 @@ const AudiobooksAccessPage: NextPage = () => {
     }
 
     const data = {
-      authorization_phrase: formData.get('authorization_phrase'),
+      invite_code: formData.get('invite_code'),
       email: formData.get('email'),
       username: formData.get('username'),
       password: password,
@@ -69,7 +69,7 @@ const AudiobooksAccessPage: NextPage = () => {
     <Layout>
       <div className="container">
         <h1>Request AudiobookShelf Access</h1>
-        <p>Get access to the audiobook library. Enter the authorization phrase and your details.</p>
+        <p style={{ color: 'rgba(255, 255, 255, 0.9)' }}>Get access to the audiobook library. Enter your invite code and create your account.</p>
 
         {message && (
           <div className={`flashes ${messageType}`}>
@@ -88,14 +88,15 @@ const AudiobooksAccessPage: NextPage = () => {
         )}
 
         <form onSubmit={handleSubmit}>
-          <label htmlFor="authorization_phrase">Authorization Phrase:</label>
+          <label htmlFor="invite_code">Invite Code:</label>
           <input 
-            type="password" 
-            id="authorization_phrase" 
-            name="authorization_phrase" 
+            type="text" 
+            id="invite_code" 
+            name="invite_code" 
             required 
             disabled={isSubmitting}
-            placeholder="Enter the secret phrase"
+            placeholder="XXXX-XXXX-XXXX"
+            style={{ textTransform: 'uppercase' }}
           />
 
           <label htmlFor="username">Desired Username:</label>
@@ -143,7 +144,7 @@ const AudiobooksAccessPage: NextPage = () => {
             placeholder="Re-enter your password"
           />
 
-          <small style={{ color: '#666', marginTop: '-10px', marginBottom: '15px' }}>
+          <small style={{ color: 'rgba(255, 255, 255, 0.7)', marginTop: '-10px', marginBottom: '15px', display: 'block' }}>
             Password must be at least 8 characters and include: uppercase, lowercase, number, and special character (@$!%*?&)
           </small>
 
