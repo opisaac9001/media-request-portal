@@ -12,10 +12,8 @@ services:
       # Persist Tailscale state
       - tailscale-state:/var/lib/tailscale
     env_file:
-      # Load from .env.local on host machine
+      # Load ALL environment variables from .env.local (including TAILSCALE_AUTHKEY)
       - .env.local
-    environment:
-      - TAILSCALE_AUTHKEY=${TAILSCALE_AUTHKEY}
     cap_add:
       - NET_ADMIN
       - SYS_MODULE
