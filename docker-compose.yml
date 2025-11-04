@@ -11,12 +11,17 @@ services:
       - ./data:/app/data
       # Persist Tailscale state
       - tailscale-state:/var/lib/tailscale
+      # TUN device for Tailscale
+      - /dev/net/tun:/dev/net/tun
     env_file:
       # Load ALL environment variables from .env.local (including TAILSCALE_AUTHKEY)
       - .env.local
     cap_add:
       - NET_ADMIN
       - SYS_MODULE
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    privileged: true
     restart: unless-stopped
     networks:
       - media-network
