@@ -1,51 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import fs from 'fs';
 import path from 'path';
-
-interface AdminSession {
-  sessionId: string;
-  username: string;
-  createdAt: number;
-  expiresAt: number;
-}
-
-const ADMIN_SESSIONS_FILE = path.join(process.cwd(), 'data', 'admin-sessions.json');
-
-function readAdminSessions(): AdminSession[] {
-  if (!fs.existsSync(ADMIN_SESSIONS_FILE)) {
-    return [];
-  }
-  const data = fs.readFileSync(ADMIN_SESSIONS_FILE, 'utf-8');
-  const parsed = JSON.parse(data);
-  return Array.isArray(parsed) ? parsed : (parsed.sessions || []);
-}
-
-// Helper function to check authentication
-function isAuthenticated(req: NextApiRequest): boolean {
-  const cookies = req.cookies;
-  const sessionId = cookies.admin_session;
-  
-  if (!sessionId) {
-    console.log('No admin_session cookie found');
-    return false;
-  }
-  
-  const sessions = readAdminSessions();
-  const session = sessions.find(s => s.sessionId === sessionId);
-  
-  if (!session) {
-    console.log('Session not found in storage');
-    return false;
-  }
-  
-  if (session.expiresAt < Date.now()) {
-    console.log('Session expired');
-    return false;
-  }
-  
-  console.log('Valid admin session for:', session.username);
-  return true;
-}
+import { isAdminAuthenticated } from '../../../lib/adminAuth';
 
 // Helper function to read .env.local
 function readEnvFile(): Record<string, string> {
@@ -112,7 +68,7 @@ function writeEnvFile(settings: Record<string, string>): void {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Check authentication
-  if (!isAuthenticated(req)) {
+  if (!isAdminAuthenticated(req)) {
     return res.status(401).json({
       authenticated: false,
       message: 'Not authenticated',

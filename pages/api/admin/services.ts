@@ -1,12 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import fs from 'fs';
 import path from 'path';
-
-// Helper function to check authentication
-function isAuthenticated(req: NextApiRequest): boolean {
-  const cookies = req.cookies;
-  return !!cookies.admin_session;
-}
+import { isAdminAuthenticated } from '../../../lib/adminAuth';
 
 interface Service {
   name?: string;
@@ -86,7 +81,7 @@ function writeServices(newServices: Service[]): void {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Check authentication
-  if (!isAuthenticated(req)) {
+  if (!isAdminAuthenticated(req)) {
     return res.status(401).json({
       authenticated: false,
       message: 'Not authenticated',

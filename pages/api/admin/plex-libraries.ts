@@ -1,12 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-
-function isAuthenticated(req: NextApiRequest): boolean {
-  const cookies = req.cookies;
-  return !!cookies.admin_session;
-}
+import { isAdminAuthenticated } from '../../../lib/adminAuth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (!isAuthenticated(req)) {
+  if (!isAdminAuthenticated(req)) {
     return res.status(401).json({
       authenticated: false,
       message: 'Not authenticated',

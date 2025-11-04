@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
+import { isAdminAuthenticated } from '../../../lib/adminAuth';
 
 interface InviteCode {
   code: string;
@@ -56,10 +57,7 @@ function generateCode(): string {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Check admin authentication
-  const cookies = req.headers.cookie || '';
-  const hasAdminSession = cookies.includes('admin_session=');
-
-  if (!hasAdminSession) {
+  if (!isAdminAuthenticated(req)) {
     return res.status(401).json({ success: false, message: 'Unauthorized' });
   }
 

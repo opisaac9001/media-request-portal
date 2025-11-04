@@ -149,13 +149,12 @@ export function resetRateLimit(req: NextApiRequest) {
   saveRateLimits(entries);
 }
 
+import { isAdminAuthenticated } from '../../../lib/adminAuth';
+
 // API endpoint to view rate limit stats (admin only)
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Check admin authentication
-  const cookies = req.headers.cookie || '';
-  const hasAdminSession = cookies.includes('admin_session=');
-
-  if (!hasAdminSession) {
+  if (!isAdminAuthenticated(req)) {
     return res.status(401).json({ success: false, message: 'Unauthorized' });
   }
 
