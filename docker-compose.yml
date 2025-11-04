@@ -11,4 +11,6 @@ services:
     env_file:
       # Load from .env.local on host machine
       - .env.local
+    environment:
+      - PORT=48532
     restart: unless-stopped
