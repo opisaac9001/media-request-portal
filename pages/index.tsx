@@ -7,7 +7,7 @@ const Home: NextPage = () => {
     <Layout>
       <div className="container">
         <h1>Welcome to the Media Portal</h1>
-        <p style={{ textAlign: 'center', color: '#666', marginBottom: '10px' }}>
+        <p style={{ textAlign: 'center', color: 'rgba(255, 255, 255, 0.9)', marginBottom: '10px' }}>
           What would you like to do today?
         </p>
         
