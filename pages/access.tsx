@@ -73,171 +73,56 @@ const AccessRequestPage: NextPage = () => {
           </div>
         )}
 
-                <form onSubmit={handleSubmit} style={{ width: '100%' }}>
-          <div style={{ marginBottom: '20px' }}>
-            <label htmlFor="invite_code" style={{ 
-              display: 'block', 
-              marginBottom: '8px',
-              color: 'white',
-              fontWeight: '500'
-            }}>
-              Invite Code
-            </label>
-            <input
-              type="text"
-              id="invite_code"
-              name="invite_code"
-              placeholder="XXXX-XXXX-XXXX"
-              required
-              style={{
-                width: '100%',
-                padding: '12px',
-                borderRadius: '8px',
-                border: '2px solid rgba(255, 255, 255, 0.2)',
-                background: 'rgba(255, 255, 255, 0.1)',
-                color: 'white',
-                fontSize: '16px',
-                transition: 'all 0.3s ease',
-              }}
-            />
-          </div>
-
-          <div style={{ marginBottom: '20px' }}>
-            <label htmlFor="username" style={{ 
-              display: 'block', 
-              marginBottom: '8px',
-              color: 'white',
-              fontWeight: '500'
-            }}>
-              Username
-            </label>
-            <input
-              type="text"
-              id="username"
-              name="username"
-              required
-              style={{
-                width: '100%',
-                padding: '12px',
-                borderRadius: '8px',
-                border: '2px solid rgba(255, 255, 255, 0.2)',
-                background: 'rgba(255, 255, 255, 0.1)',
-                color: 'white',
-                fontSize: '16px',
-                transition: 'all 0.3s ease',
-              }}
-            />
-          </div>
-
-          <div style={{ marginBottom: '20px' }}>
-            <label htmlFor="email" style={{ 
-              display: 'block', 
-              marginBottom: '8px',
-              color: 'white',
-              fontWeight: '500'
-            }}>
-              Email Address
-            </label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              required
-              style={{
-                width: '100%',
-                padding: '12px',
-                borderRadius: '8px',
-                border: '2px solid rgba(255, 255, 255, 0.2)',
-                background: 'rgba(255, 255, 255, 0.1)',
-                color: 'white',
-                fontSize: '16px',
-                transition: 'all 0.3s ease',
-              }}
-            />
-          </div>
-
-          <div style={{ marginBottom: '20px' }}>
-            <label htmlFor="password" style={{ 
-              display: 'block', 
-              marginBottom: '8px',
-              color: 'white',
-              fontWeight: '500'
-            }}>
-              Password
-            </label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              required
-              minLength={8}
-              style={{
-                width: '100%',
-                padding: '12px',
-                borderRadius: '8px',
-                border: '2px solid rgba(255, 255, 255, 0.2)',
-                background: 'rgba(255, 255, 255, 0.1)',
-                color: 'white',
-                fontSize: '16px',
-                transition: 'all 0.3s ease',
-              }}
-            />
-            <small style={{ 
-              display: 'block', 
-              marginTop: '5px', 
-              color: 'rgba(255, 255, 255, 0.7)',
-              fontSize: '14px'
-            }}>
-              Must be at least 8 characters with uppercase, lowercase, number, and special character
-            </small>
-          </div>
-
-          <div style={{ marginBottom: '20px' }}>
-            <label htmlFor="confirm_password" style={{ 
-              display: 'block', 
-              marginBottom: '8px',
-              color: 'white',
-              fontWeight: '500'
-            }}>
-              Confirm Password
-            </label>
-            <input
-              type="password"
-              id="confirm_password"
-              name="confirm_password"
-              required
-              style={{
-                width: '100%',
-                padding: '12px',
-                borderRadius: '8px',
-                border: '2px solid rgba(255, 255, 255, 0.2)',
-                background: 'rgba(255, 255, 255, 0.1)',
-                color: 'white',
-                fontSize: '16px',
-                transition: 'all 0.3s ease',
-              }}
-            />
-          </div>
-
-          <button
-            type="submit"
+                <form onSubmit={handleSubmit}>
+          <label htmlFor="invite_code">Invite Code</label>
+          <input
+            type="text"
+            id="invite_code"
+            name="invite_code"
+            placeholder="XXXX-XXXX-XXXX"
+            required
             disabled={isSubmitting}
-            style={{
-              width: '100%',
-              padding: '14px',
-              background: isSubmitting 
-                ? 'rgba(255, 255, 255, 0.3)' 
-                : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '16px',
-              fontWeight: '600',
-              cursor: isSubmitting ? 'not-allowed' : 'pointer',
-              transition: 'all 0.3s ease',
-              marginBottom: '15px',
-            }}
-          >
+          />
+
+          <label htmlFor="username">Username</label>
+          <input
+            type="text"
+            id="username"
+            name="username"
+            required
+            disabled={isSubmitting}
+          />
+
+          <label htmlFor="email">Email Address</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            required
+            disabled={isSubmitting}
+          />
+
+          <label htmlFor="password">Password</label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            required
+            minLength={8}
+            disabled={isSubmitting}
+          />
+          <small>Must be at least 8 characters with uppercase, lowercase, number, and special character</small>
+
+          <label htmlFor="confirm_password">Confirm Password</label>
+          <input
+            type="password"
+            id="confirm_password"
+            name="confirm_password"
+            required
+            disabled={isSubmitting}
+          />
+
+          <button type="submit" disabled={isSubmitting}>
             {isSubmitting ? 'Submitting...' : 'Request Access'}
           </button>
         </form>
