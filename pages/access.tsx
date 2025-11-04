@@ -65,7 +65,7 @@ const AccessRequestPage: NextPage = () => {
     <Layout>
       <div className="container">
         <h1>Request Plex Server Access</h1>
-        <p>Create an account and receive access to the Plex server.</p>
+        <p style={{ color: 'rgba(255, 255, 255, 0.9)' }}>Create an account and receive access to the Plex server.</p>
 
         {message && (
           <div className={`flashes ${messageType}`}>
