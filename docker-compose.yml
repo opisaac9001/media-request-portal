@@ -2,15 +2,30 @@ services:
   media-request-portal:
     build: .
     container_name: media-request-portal
-    network_mode: host
+    ports:
+      - "48532:3000"
     volumes:
       # Persist .env.local file so settings survive rebuilds
       - ./.env.local:/app/.env.local:ro
       # Persist data directory for sessions, users, etc
       - ./data:/app/data
+      # Persist Tailscale state
+      - tailscale-state:/var/lib/tailscale
     env_file:
       # Load from .env.local on host machine
       - .env.local
     environment:
-      - PORT=48532
+      - TAILSCALE_AUTHKEY=${TAILSCALE_AUTHKEY}
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
     restart: unless-stopped
+    networks:
+      - media-network
+
+networks:
+  media-network:
+    driver: bridge
+
+volumes:
+  tailscale-state:
