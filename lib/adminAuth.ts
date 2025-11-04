@@ -29,24 +29,34 @@ export function isAdminAuthenticated(req: NextApiRequest): boolean {
   const cookies = req.cookies;
   const sessionId = cookies.admin_session;
   
+  console.log('=== Admin Auth Check ===');
+  console.log('Cookies received:', cookies);
+  console.log('Session ID from cookie:', sessionId);
+  
   if (!sessionId) {
-    console.log('No admin_session cookie found');
+    console.log('❌ No admin_session cookie found');
     return false;
   }
   
   const sessions = readAdminSessions();
+  console.log('Total sessions in storage:', sessions.length);
+  
   const session = sessions.find(s => s.sessionId === sessionId);
   
   if (!session) {
-    console.log('Admin session not found in storage');
+    console.log('❌ Admin session not found in storage');
     return false;
   }
+  
+  console.log('Session found. Expires at:', new Date(session.expiresAt).toISOString());
+  console.log('Current time:', new Date().toISOString());
   
   if (session.expiresAt < Date.now()) {
-    console.log('Admin session expired');
+    console.log('❌ Admin session expired');
     return false;
   }
   
-  console.log('Valid admin session for:', session.username);
+  console.log('✅ Valid admin session for:', session.username);
+  console.log('========================');
   return true;
 }

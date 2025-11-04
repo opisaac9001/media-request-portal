@@ -86,7 +86,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       path: '/',
     });
     
-    console.log('Admin login successful for:', username);
+    console.log('=== Admin Login Success ===');
+    console.log('Username:', username);
+    console.log('Session ID:', sessionId);
+    console.log('Cookie being set:', cookie);
+    console.log('Session saved to file:', ADMIN_SESSIONS_FILE);
+    console.log('===========================');
 
     res.setHeader('Set-Cookie', cookie);
     
