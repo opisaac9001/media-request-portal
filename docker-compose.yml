@@ -2,8 +2,7 @@ services:
   media-request-portal:
     build: .
     container_name: media-request-portal
-    ports:
-      - "48532:3000"
+    network_mode: host
     volumes:
       # Persist .env.local file so settings survive rebuilds
       - ./.env.local:/app/.env.local:ro
@@ -13,9 +12,3 @@ services:
       # Load from .env.local on host machine
       - .env.local
     restart: unless-stopped
-    networks:
-      - media-network
-
-networks:
-  media-network:
-    driver: bridge
