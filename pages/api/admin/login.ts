@@ -1,5 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { serialize } from 'cookie';
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
@@ -77,23 +76,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     activeSessions.push(newSession);
     writeAdminSessions(activeSessions);
     
-    // Set cookie with session token
-    const cookie = serialize('admin_session', sessionId, {
-      httpOnly: true,
-      secure: false, // Set to false to work with HTTP
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24, // 24 hours
-      path: '/',
-    });
+    // Set cookie with session token (using same format as user login)
+    const cookieValue = `admin_session=${sessionId}; HttpOnly; Path=/; Max-Age=${60 * 60 * 24}; SameSite=Lax`;
     
     console.log('=== Admin Login Success ===');
     console.log('Username:', username);
     console.log('Session ID:', sessionId);
-    console.log('Cookie being set:', cookie);
+    console.log('Cookie being set:', cookieValue);
     console.log('Session saved to file:', ADMIN_SESSIONS_FILE);
     console.log('===========================');
 
-    res.setHeader('Set-Cookie', cookie);
+    res.setHeader('Set-Cookie', cookieValue);
     
     return res.status(200).json({
       success: true,
