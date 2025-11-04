@@ -76,7 +76,7 @@ const RequestsPage: NextPage = () => {
     <Layout>
       <div className="container">
         <h1>Request Content for Plex</h1>
-        <p>Tell us what content you'd like to see added!</p>
+        <p style={{ color: 'rgba(255, 255, 255, 0.9)' }}>Tell us what content you'd like to see added!</p>
 
         {isLoggedIn && (
           <div style={{ 
