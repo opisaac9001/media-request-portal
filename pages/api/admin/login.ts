@@ -1,7 +1,40 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { serialize } from 'cookie';
 import crypto from 'crypto';
+import fs from 'fs';
+import path from 'path';
 import { checkRateLimit, recordFailedAttempt, resetRateLimit } from './rate-limits';
+
+interface AdminSession {
+  sessionId: string;
+  username: string;
+  createdAt: number;
+  expiresAt: number;
+}
+
+const ADMIN_SESSIONS_FILE = path.join(process.cwd(), 'data', 'admin-sessions.json');
+
+function ensureDataDir() {
+  const dataDir = path.join(process.cwd(), 'data');
+  if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
+  }
+}
+
+function readAdminSessions(): AdminSession[] {
+  ensureDataDir();
+  if (!fs.existsSync(ADMIN_SESSIONS_FILE)) {
+    return [];
+  }
+  const data = fs.readFileSync(ADMIN_SESSIONS_FILE, 'utf-8');
+  const parsed = JSON.parse(data);
+  return Array.isArray(parsed) ? parsed : (parsed.sessions || []);
+}
+
+function writeAdminSessions(sessions: AdminSession[]) {
+  ensureDataDir();
+  fs.writeFileSync(ADMIN_SESSIONS_FILE, JSON.stringify({ sessions }, null, 2));
+}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -23,21 +56,37 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (username === adminUsername && password === adminPassword) {
     // Reset rate limit on successful login
     resetRateLimit(req);
-    // Generate a simple session token
-    const token = crypto.randomBytes(32).toString('hex');
+    
+    // Generate a session token
+    const sessionId = crypto.randomBytes(32).toString('hex');
+    const now = Date.now();
+    const expiresAt = now + (24 * 60 * 60 * 1000); // 24 hours
+    
+    // Store session
+    const sessions = readAdminSessions();
+    // Remove old expired sessions
+    const activeSessions = sessions.filter(s => s.expiresAt > now);
+    
+    const newSession: AdminSession = {
+      sessionId,
+      username,
+      createdAt: now,
+      expiresAt,
+    };
+    
+    activeSessions.push(newSession);
+    writeAdminSessions(activeSessions);
     
     // Set cookie with session token
-    const cookie = serialize('admin_session', token, {
+    const cookie = serialize('admin_session', sessionId, {
       httpOnly: true,
-      secure: false, // Set to false to work with HTTP (not just HTTPS)
+      secure: false, // Set to false to work with HTTP
       sameSite: 'lax',
       maxAge: 60 * 60 * 24, // 24 hours
       path: '/',
-      domain: undefined, // Don't set domain to work with any hostname
     });
     
-    // Also log for debugging
-    console.log('Setting cookie for user:', username);
+    console.log('Admin login successful for:', username);
 
     res.setHeader('Set-Cookie', cookie);
     

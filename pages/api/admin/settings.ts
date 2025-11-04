@@ -2,13 +2,49 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import fs from 'fs';
 import path from 'path';
 
+interface AdminSession {
+  sessionId: string;
+  username: string;
+  createdAt: number;
+  expiresAt: number;
+}
+
+const ADMIN_SESSIONS_FILE = path.join(process.cwd(), 'data', 'admin-sessions.json');
+
+function readAdminSessions(): AdminSession[] {
+  if (!fs.existsSync(ADMIN_SESSIONS_FILE)) {
+    return [];
+  }
+  const data = fs.readFileSync(ADMIN_SESSIONS_FILE, 'utf-8');
+  const parsed = JSON.parse(data);
+  return Array.isArray(parsed) ? parsed : (parsed.sessions || []);
+}
+
 // Helper function to check authentication
 function isAuthenticated(req: NextApiRequest): boolean {
   const cookies = req.cookies;
-  console.log('Checking auth, cookies:', cookies);
-  const hasSession = !!cookies.admin_session;
-  console.log('Has admin_session:', hasSession);
-  return hasSession;
+  const sessionId = cookies.admin_session;
+  
+  if (!sessionId) {
+    console.log('No admin_session cookie found');
+    return false;
+  }
+  
+  const sessions = readAdminSessions();
+  const session = sessions.find(s => s.sessionId === sessionId);
+  
+  if (!session) {
+    console.log('Session not found in storage');
+    return false;
+  }
+  
+  if (session.expiresAt < Date.now()) {
+    console.log('Session expired');
+    return false;
+  }
+  
+  console.log('Valid admin session for:', session.username);
+  return true;
 }
 
 // Helper function to read .env.local

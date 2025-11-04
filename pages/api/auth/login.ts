@@ -47,16 +47,38 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const users = getUsers();
-    const user = users.find((u) => u.username.toLowerCase() === username.toLowerCase());
+    // Check if credentials match admin credentials
+    const adminUsername = process.env.ADMIN_USERNAME;
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    
+    let user;
+    let isAdmin = false;
 
-    if (!user || user.password !== hashPassword(password)) {
-      recordFailedAttempt(req);
-      console.log(`Failed login attempt for user: ${username}`);
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid username or password.',
-      });
+    if (adminUsername && adminPassword && 
+        username.toLowerCase() === adminUsername.toLowerCase() && 
+        password === adminPassword) {
+      // Admin login - create virtual user object
+      user = {
+        id: 'admin',
+        username: adminUsername,
+        email: 'admin@localhost',
+        password: hashPassword(adminPassword),
+        createdAt: Date.now(),
+      };
+      isAdmin = true;
+    } else {
+      // Regular user login
+      const users = getUsers();
+      user = users.find((u) => u.username.toLowerCase() === username.toLowerCase());
+
+      if (!user || user.password !== hashPassword(password)) {
+        recordFailedAttempt(req);
+        console.log(`Failed login attempt for user: ${username}`);
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid username or password.',
+        });
+      }
     }
 
     // Create session token
@@ -68,7 +90,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Store session mapping (in production, use Redis or database)
     // For now, we'll use a simple file-based session store
     const sessionFile = path.join(process.cwd(), 'data', 'sessions.json');
-    let sessions: { [key: string]: { userId: string; username: string } } = {};
+    let sessions: { [key: string]: { userId: string; username: string; isAdmin?: boolean } } = {};
     
     if (fs.existsSync(sessionFile)) {
       sessions = JSON.parse(fs.readFileSync(sessionFile, 'utf-8'));
@@ -77,6 +99,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     sessions[sessionToken] = {
       userId: user.id,
       username: user.username,
+      isAdmin: isAdmin,
     };
     
     fs.writeFileSync(sessionFile, JSON.stringify(sessions, null, 2));
@@ -84,7 +107,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Reset rate limit on successful login
     resetRateLimit(req);
     
-    console.log(`User logged in: ${username}`);
+    console.log(`User logged in: ${username}${isAdmin ? ' (admin)' : ''}`);
 
     return res.status(200).json({
       success: true,
