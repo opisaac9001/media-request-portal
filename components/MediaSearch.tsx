@@ -45,21 +45,27 @@ export default function MediaSearch({
     setError('');
 
     try {
-      const response = await fetch(
-        `/api/media/search?query=${encodeURIComponent(searchQuery)}&type=${contentType}`,
-        { credentials: 'include' }
-      );
+      const searchUrl = `/api/media/search?query=${encodeURIComponent(searchQuery)}&type=${contentType}`;
+      console.log('Searching:', searchUrl);
       
+      const response = await fetch(searchUrl, { credentials: 'include' });
+      
+      console.log('Search response status:', response.status);
       const data = await response.json();
+      console.log('Search results:', data);
       
       if (data.success) {
         setResults(data.results || []);
         setShowResults(true);
+        if (data.message && data.results?.length === 0) {
+          setError(data.message);
+        }
       } else {
         setError(data.message || 'Search failed');
         setResults([]);
       }
     } catch (err) {
+      console.error('Search error:', err);
       setError('Failed to search. Please try again.');
       setResults([]);
     } finally {
@@ -88,13 +94,18 @@ export default function MediaSearch({
     };
   }, [query, search]);
 
-  // Clear search when content type changes
+  // Clear search when content type changes (skip initial mount)
+  const isFirstRender = useRef(true);
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     setQuery('');
     setResults([]);
     setShowResults(false);
     onClear();
-  }, [contentType]);
+  }, [contentType, onClear]);
 
   // Click outside to close
   useEffect(() => {
@@ -269,7 +280,7 @@ export default function MediaSearch({
           borderRadius: '12px',
           border: '1px solid rgba(255, 255, 255, 0.1)',
           boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
-          maxHeight: '400px',
+          maxHeight: '300px',
           overflowY: 'auto',
           zIndex: 100,
         }}>

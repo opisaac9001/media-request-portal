@@ -18,6 +18,8 @@
   "license": "MIT",
   "dependencies": {
     "cookie": "^1.0.2",
+    "gamedig": "^5.0.0",
+    "minecraft-server-util": "^5.0.0",
     "next": "latest",
     "react": "latest",
     "react-dom": "latest",

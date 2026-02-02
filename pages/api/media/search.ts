@@ -18,77 +18,91 @@ interface SearchResponse {
   message?: string;
 }
 
-async function searchRadarr(query: string): Promise<MediaResult[]> {
+async function searchRadarr(query: string): Promise<{ results: MediaResult[]; error?: string }> {
   const radarrApiKey = process.env.RADARR_API_KEY;
   const radarrBaseUrl = process.env.RADARR_BASE_URL;
 
   if (!radarrApiKey || !radarrBaseUrl) {
-    return [];
+    console.error('Radarr config missing - API_KEY:', !!radarrApiKey, 'BASE_URL:', !!radarrBaseUrl);
+    return { results: [], error: 'Radarr is not configured' };
   }
 
+  const url = `${radarrBaseUrl}/api/v3/movie/lookup?term=${encodeURIComponent(query)}`;
+  console.log('Searching Radarr:', url);
+
   try {
-    const response = await fetch(
-      `${radarrBaseUrl}/api/v3/movie/lookup?term=${encodeURIComponent(query)}`,
-      { headers: { 'X-Api-Key': radarrApiKey } }
-    );
+    const response = await fetch(url, { 
+      headers: { 'X-Api-Key': radarrApiKey },
+    });
 
     if (!response.ok) {
-      console.error('Radarr search failed:', response.status);
-      return [];
+      const errorText = await response.text();
+      console.error('Radarr search failed:', response.status, errorText);
+      return { results: [], error: `Radarr error: ${response.status}` };
     }
 
     const results = await response.json();
+    console.log('Radarr returned', results.length, 'results');
     
-    return results.slice(0, 10).map((movie: any) => ({
-      id: movie.tmdbId,
-      title: movie.title,
-      year: movie.year || 0,
-      overview: movie.overview || '',
-      poster: movie.remotePoster || movie.images?.find((img: any) => img.coverType === 'poster')?.remoteUrl || null,
-      type: 'movie' as const,
-      tmdbId: movie.tmdbId,
-      imdbId: movie.imdbId,
-    }));
+    return {
+      results: results.slice(0, 10).map((movie: any) => ({
+        id: movie.tmdbId,
+        title: movie.title,
+        year: movie.year || 0,
+        overview: movie.overview || '',
+        poster: movie.remotePoster || movie.images?.find((img: any) => img.coverType === 'poster')?.remoteUrl || null,
+        type: 'movie' as const,
+        tmdbId: movie.tmdbId,
+        imdbId: movie.imdbId,
+      }))
+    };
   } catch (error) {
     console.error('Radarr search error:', error);
-    return [];
+    return { results: [], error: `Radarr connection failed: ${error instanceof Error ? error.message : 'Unknown error'}` };
   }
 }
 
-async function searchSonarr(query: string): Promise<MediaResult[]> {
+async function searchSonarr(query: string): Promise<{ results: MediaResult[]; error?: string }> {
   const sonarrApiKey = process.env.SONARR_API_KEY;
   const sonarrBaseUrl = process.env.SONARR_BASE_URL;
 
   if (!sonarrApiKey || !sonarrBaseUrl) {
-    return [];
+    console.error('Sonarr config missing - API_KEY:', !!sonarrApiKey, 'BASE_URL:', !!sonarrBaseUrl);
+    return { results: [], error: 'Sonarr is not configured' };
   }
 
+  const url = `${sonarrBaseUrl}/api/v3/series/lookup?term=${encodeURIComponent(query)}`;
+  console.log('Searching Sonarr:', url);
+
   try {
-    const response = await fetch(
-      `${sonarrBaseUrl}/api/v3/series/lookup?term=${encodeURIComponent(query)}`,
-      { headers: { 'X-Api-Key': sonarrApiKey } }
-    );
+    const response = await fetch(url, { 
+      headers: { 'X-Api-Key': sonarrApiKey },
+    });
 
     if (!response.ok) {
-      console.error('Sonarr search failed:', response.status);
-      return [];
+      const errorText = await response.text();
+      console.error('Sonarr search failed:', response.status, errorText);
+      return { results: [], error: `Sonarr error: ${response.status}` };
     }
 
     const results = await response.json();
+    console.log('Sonarr returned', results.length, 'results');
     
-    return results.slice(0, 10).map((series: any) => ({
-      id: series.tvdbId,
-      title: series.title,
-      year: series.year || 0,
-      overview: series.overview || '',
-      poster: series.remotePoster || series.images?.find((img: any) => img.coverType === 'poster')?.remoteUrl || null,
-      type: 'series' as const,
-      tvdbId: series.tvdbId,
-      imdbId: series.imdbId,
-    }));
+    return {
+      results: results.slice(0, 10).map((series: any) => ({
+        id: series.tvdbId,
+        title: series.title,
+        year: series.year || 0,
+        overview: series.overview || '',
+        poster: series.remotePoster || series.images?.find((img: any) => img.coverType === 'poster')?.remoteUrl || null,
+        type: 'series' as const,
+        tvdbId: series.tvdbId,
+        imdbId: series.imdbId,
+      }))
+    };
   } catch (error) {
     console.error('Sonarr search error:', error);
-    return [];
+    return { results: [], error: `Sonarr connection failed: ${error instanceof Error ? error.message : 'Unknown error'}` };
   }
 }
 
@@ -135,19 +149,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   }
 
   let results: MediaResult[] = [];
+  let error: string | undefined;
 
   // Search based on content type
   if (type === 'movie' || type === 'kids_movie') {
-    results = await searchRadarr(query);
+    const radarrResult = await searchRadarr(query);
+    results = radarrResult.results;
+    error = radarrResult.error;
   } else if (type === 'tv_show' || type === 'anime' || type === 'adult_swim' || type === 'saturday_cartoons') {
-    results = await searchSonarr(query);
+    const sonarrResult = await searchSonarr(query);
+    results = sonarrResult.results;
+    error = sonarrResult.error;
   } else {
     // Search both if no type specified
-    const [movies, series] = await Promise.all([
+    const [radarrResult, sonarrResult] = await Promise.all([
       searchRadarr(query),
       searchSonarr(query),
     ]);
-    results = [...movies, ...series];
+    results = [...radarrResult.results, ...sonarrResult.results];
+    if (radarrResult.error && sonarrResult.error) {
+      error = `${radarrResult.error}; ${sonarrResult.error}`;
+    }
+  }
+
+  if (results.length === 0 && error) {
+    return res.status(200).json({ success: true, results: [], message: error });
   }
 
   return res.status(200).json({ success: true, results });

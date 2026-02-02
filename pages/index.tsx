@@ -209,16 +209,27 @@ const Home: NextPage = () => {
               </p>
             </Link>
 
-            {/* Game Servers - Coming Soon */}
-            <div style={{
-              background: 'rgba(15, 25, 45, 0.5)',
+            {/* Game Servers */}
+            <Link href="/game-servers" style={{
+              textDecoration: 'none',
+              background: 'rgba(15, 25, 45, 0.85)',
               backdropFilter: 'blur(20px)',
               borderRadius: '20px',
               padding: '40px 30px',
-              border: '2px solid rgba(156, 163, 175, 0.2)',
+              border: '2px solid rgba(34, 197, 94, 0.3)',
               boxShadow: '0 10px 40px rgba(0, 0, 0, 0.3)',
-              opacity: '0.6',
-              cursor: 'not-allowed'
+              transition: 'all 0.3s ease',
+              cursor: 'pointer'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-8px)';
+              e.currentTarget.style.borderColor = '#22c55e';
+              e.currentTarget.style.boxShadow = '0 20px 60px rgba(34, 197, 94, 0.4)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.borderColor = 'rgba(34, 197, 94, 0.3)';
+              e.currentTarget.style.boxShadow = '0 10px 40px rgba(0, 0, 0, 0.3)';
             }}>
               <div style={{ fontSize: '48px', marginBottom: '16px' }}>🎮</div>
               <h2 style={{
@@ -234,9 +245,9 @@ const Home: NextPage = () => {
                 fontSize: '15px',
                 lineHeight: '1.6'
               }}>
-                Coming Soon
+                View game server status and info
               </p>
-            </div>
+            </Link>
           </div>
 
           {/* Secondary Actions */}
@@ -245,9 +256,58 @@ const Home: NextPage = () => {
             justifyContent: 'center',
             gap: '20px',
             flexWrap: 'wrap',
-            marginBottom: '40px'
+            marginBottom: '40px',
+            marginTop: '30px'
           }}>
-                      </div>
+            <Link href="/report-issue" style={{
+              padding: '12px 24px',
+              borderRadius: '12px',
+              background: 'rgba(239, 68, 68, 0.1)',
+              border: '1px solid rgba(239, 68, 68, 0.3)',
+              color: '#ef4444',
+              textDecoration: 'none',
+              fontSize: '14px',
+              fontWeight: '600',
+              transition: 'all 0.3s ease',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)';
+              e.currentTarget.style.borderColor = '#ef4444';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
+              e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+            }}>
+              🐛 Report an Issue
+            </Link>
+            <Link href="/plappa-setup" style={{
+              padding: '12px 24px',
+              borderRadius: '12px',
+              background: 'rgba(168, 85, 247, 0.1)',
+              border: '1px solid rgba(168, 85, 247, 0.3)',
+              color: '#a855f7',
+              textDecoration: 'none',
+              fontSize: '14px',
+              fontWeight: '600',
+              transition: 'all 0.3s ease',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(168, 85, 247, 0.2)';
+              e.currentTarget.style.borderColor = '#a855f7';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(168, 85, 247, 0.1)';
+              e.currentTarget.style.borderColor = 'rgba(168, 85, 247, 0.3)';
+            }}>
+              📱 Mobile App Setup
+            </Link>
+          </div>
 
           {/* Info Banner */}
           <div style={{
