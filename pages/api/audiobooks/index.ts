@@ -236,6 +236,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     console.log(`AudiobookShelf account created for ${username} (${email})`);
 
+    // Add public URL if configured
+    const publicUrl = process.env.AUDIOBOOKSHELF_PUBLIC_URL;
+    if (publicUrl && result.credentials) {
+      return res.status(200).json({
+        ...result,
+        serverUrl: publicUrl,
+      });
+    }
+
     return res.status(200).json(result);
   } else {
     res.status(405).json({ message: 'Method not allowed' });

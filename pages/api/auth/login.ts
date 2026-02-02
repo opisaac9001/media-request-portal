@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
-import { checkRateLimit, recordFailedAttempt, resetRateLimit } from '../admin/rate-limits';
+import { checkRateLimit, recordAttempt, getClientIP } from '../../../lib/rateLimit';
 
 interface User {
   id: string;
@@ -32,14 +32,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   // Check rate limit before processing
-  if (!checkRateLimit(req, res)) {
-    return; // Response already sent by checkRateLimit
+  const clientIP = getClientIP(req);
+  const rateLimitCheck = checkRateLimit(clientIP);
+  
+  if (!rateLimitCheck.allowed) {
+    return res.status(429).json({
+      success: false,
+      message: rateLimitCheck.message || 'Too many login attempts. Please try again later.',
+      retryAfter: rateLimitCheck.retryAfter
+    });
   }
 
   const { username, password } = req.body;
 
   if (!username || !password) {
-    recordFailedAttempt(req);
+    recordAttempt(clientIP);
     return res.status(400).json({
       success: false,
       message: 'Username and password are required.',
@@ -72,8 +79,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       user = users.find((u) => u.username.toLowerCase() === username.toLowerCase());
 
       if (!user || user.password !== hashPassword(password)) {
-        recordFailedAttempt(req);
-        console.log(`Failed login attempt for user: ${username}`);
+        recordAttempt(clientIP);
+        console.log(`Failed login attempt for user: ${username} from IP: ${clientIP}`);
         return res.status(401).json({
           success: false,
           message: 'Invalid username or password.',
@@ -104,10 +111,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     
     fs.writeFileSync(sessionFile, JSON.stringify(sessions, null, 2));
 
-    // Reset rate limit on successful login
-    resetRateLimit(req);
-    
-    console.log(`User logged in: ${username}${isAdmin ? ' (admin)' : ''}`);
+    // Successful login - no need to record as failed attempt
+    console.log(`User logged in: ${username}${isAdmin ? ' (admin)' : ''} from IP: ${clientIP}`);
 
     return res.status(200).json({
       success: true,

@@ -5,9 +5,8 @@ interface MediaResponse {
   message: string;
 }
 
-async function addToRadarr(title: string, isKids: boolean = false): Promise<MediaResponse> {
+async function addToRadarr(title: string, isKids: boolean = false, tmdbId?: number): Promise<MediaResponse> {
   try {
-    // Use the same Radarr instance, just different folders
     const radarrApiKey = process.env.RADARR_API_KEY;
     const radarrBaseUrl = process.env.RADARR_BASE_URL;
     const rootFolder = isKids 
@@ -23,26 +22,42 @@ async function addToRadarr(title: string, isKids: boolean = false): Promise<Medi
 
     const headers = { 'X-Api-Key': radarrApiKey };
 
-    // Search for the movie
-    const searchResponse = await fetch(
-      `${radarrBaseUrl}/api/v3/movie/lookup?term=${encodeURIComponent(title)}`,
-      { headers }
-    );
+    let movie: any;
 
-    if (!searchResponse.ok) {
-      throw new Error('Failed to search Radarr');
+    // If we have a tmdbId, lookup by that for exact match
+    if (tmdbId) {
+      const lookupResponse = await fetch(
+        `${radarrBaseUrl}/api/v3/movie/lookup/tmdb?tmdbId=${tmdbId}`,
+        { headers }
+      );
+
+      if (lookupResponse.ok) {
+        movie = await lookupResponse.json();
+      }
     }
 
-    const results = await searchResponse.json();
+    // Fallback to title search if no tmdbId or lookup failed
+    if (!movie) {
+      const searchResponse = await fetch(
+        `${radarrBaseUrl}/api/v3/movie/lookup?term=${encodeURIComponent(title)}`,
+        { headers }
+      );
 
-    if (!results || results.length === 0) {
-      return {
-        success: false,
-        message: `${isKids ? "Children's Movie" : 'Movie'} "${title}" not found in Radarr search.`,
-      };
+      if (!searchResponse.ok) {
+        throw new Error('Failed to search Radarr');
+      }
+
+      const results = await searchResponse.json();
+
+      if (!results || results.length === 0) {
+        return {
+          success: false,
+          message: `${isKids ? "Children's Movie" : 'Movie'} "${title}" not found in Radarr search.`,
+        };
+      }
+
+      movie = results[0];
     }
-
-    const movie = results[0];
 
     // Add the movie
     const addResponse = await fetch(`${radarrBaseUrl}/api/v3/movie`, {
@@ -80,9 +95,8 @@ async function addToRadarr(title: string, isKids: boolean = false): Promise<Medi
   }
 }
 
-async function addToSonarr(title: string, contentType: 'tv_show' | 'anime' | 'adult_swim' | 'saturday_cartoons' = 'tv_show'): Promise<MediaResponse> {
+async function addToSonarr(title: string, contentType: 'tv_show' | 'anime' | 'adult_swim' | 'saturday_cartoons' = 'tv_show', tvdbId?: number): Promise<MediaResponse> {
   try {
-    // Use the same Sonarr instance for all types
     const sonarrApiKey = process.env.SONARR_API_KEY;
     const sonarrBaseUrl = process.env.SONARR_BASE_URL;
     const qualityProfile = parseInt(process.env.SONARR_QUALITY_PROFILE || '1', 10);
@@ -92,11 +106,10 @@ async function addToSonarr(title: string, contentType: 'tv_show' | 'anime' | 'ad
     let seriesType: string;
     let typeName: string;
 
-    // Determine folder and series type based on content type
     switch (contentType) {
       case 'anime':
         rootFolder = process.env.SONARR_ANIME_ROOT_FOLDER || '/anime';
-        seriesType = 'anime'; // Uses absolute numbering
+        seriesType = 'anime';
         typeName = 'Anime';
         break;
       case 'adult_swim':
@@ -109,7 +122,7 @@ async function addToSonarr(title: string, contentType: 'tv_show' | 'anime' | 'ad
         seriesType = 'standard';
         typeName = 'Saturday Morning Cartoon';
         break;
-      default: // tv_show
+      default:
         rootFolder = process.env.SONARR_ROOT_FOLDER || '/tv';
         seriesType = 'standard';
         typeName = 'TV Show';
@@ -124,26 +137,45 @@ async function addToSonarr(title: string, contentType: 'tv_show' | 'anime' | 'ad
 
     const headers = { 'X-Api-Key': sonarrApiKey };
 
-    // Search for the TV show
-    const searchResponse = await fetch(
-      `${sonarrBaseUrl}/api/v3/series/lookup?term=${encodeURIComponent(title)}`,
-      { headers }
-    );
+    let series: any;
 
-    if (!searchResponse.ok) {
-      throw new Error('Failed to search Sonarr');
+    // If we have a tvdbId, lookup by that for exact match
+    if (tvdbId) {
+      const lookupResponse = await fetch(
+        `${sonarrBaseUrl}/api/v3/series/lookup?term=tvdb:${tvdbId}`,
+        { headers }
+      );
+
+      if (lookupResponse.ok) {
+        const results = await lookupResponse.json();
+        if (results && results.length > 0) {
+          series = results[0];
+        }
+      }
     }
 
-    const results = await searchResponse.json();
+    // Fallback to title search if no tvdbId or lookup failed
+    if (!series) {
+      const searchResponse = await fetch(
+        `${sonarrBaseUrl}/api/v3/series/lookup?term=${encodeURIComponent(title)}`,
+        { headers }
+      );
 
-    if (!results || results.length === 0) {
-      return {
-        success: false,
-        message: `${typeName} "${title}" not found in Sonarr search.`,
-      };
+      if (!searchResponse.ok) {
+        throw new Error('Failed to search Sonarr');
+      }
+
+      const results = await searchResponse.json();
+
+      if (!results || results.length === 0) {
+        return {
+          success: false,
+          message: `${typeName} "${title}" not found in Sonarr search.`,
+        };
+      }
+
+      series = results[0];
     }
-
-    const series = results[0];
 
     // Add the series with type-specific settings
     const addResponse = await fetch(`${sonarrBaseUrl}/api/v3/series`, {
@@ -188,7 +220,7 @@ async function addToSonarr(title: string, contentType: 'tv_show' | 'anime' | 'ad
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
-    const { authorization_phrase, content_type, title, user_email } = req.body;
+    const { authorization_phrase, content_type, title, user_email, tmdbId, tvdbId } = req.body;
 
     // Check if user is logged in via session
     const cookies = req.headers.cookie || '';
@@ -234,17 +266,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     let result: MediaResponse;
 
     if (content_type === 'movie') {
-      result = await addToRadarr(title, false);
+      result = await addToRadarr(title, false, tmdbId);
     } else if (content_type === 'kids_movie') {
-      result = await addToRadarr(title, true);
+      result = await addToRadarr(title, true, tmdbId);
     } else if (content_type === 'tv_show') {
-      result = await addToSonarr(title, 'tv_show');
+      result = await addToSonarr(title, 'tv_show', tvdbId);
     } else if (content_type === 'anime') {
-      result = await addToSonarr(title, 'anime');
+      result = await addToSonarr(title, 'anime', tvdbId);
     } else if (content_type === 'adult_swim') {
-      result = await addToSonarr(title, 'adult_swim');
+      result = await addToSonarr(title, 'adult_swim', tvdbId);
     } else if (content_type === 'saturday_cartoons') {
-      result = await addToSonarr(title, 'saturday_cartoons');
+      result = await addToSonarr(title, 'saturday_cartoons', tvdbId);
     } else {
       return res.status(400).json({
         success: false,

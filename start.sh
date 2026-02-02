@@ -18,5 +18,13 @@ fi
 # Wait for Tailscale to be ready
 sleep 3
 
+# Start Cloudflare Tunnel if token is provided
+if [ -n "$CLOUDFLARE_TUNNEL_TOKEN" ]; then
+    echo "Starting Cloudflare Tunnel..."
+    cloudflared tunnel --no-autoupdate run --token "$CLOUDFLARE_TUNNEL_TOKEN" &
+else
+    echo "No CLOUDFLARE_TUNNEL_TOKEN provided. Skipping Cloudflare Tunnel."
+fi
+
 # Start the Next.js application
 exec npm start

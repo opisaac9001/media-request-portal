@@ -2,13 +2,15 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Install Tailscale
-RUN apk add --no-cache ca-certificates iptables iproute2 && \
+# Install Tailscale and Cloudflared
+RUN apk add --no-cache ca-certificates iptables iproute2 curl && \
     wget https://pkgs.tailscale.com/stable/tailscale_1.56.1_amd64.tgz && \
     tar xzf tailscale_1.56.1_amd64.tgz --strip-components=1 && \
     mv tailscale /usr/local/bin/ && \
     mv tailscaled /usr/local/bin/ && \
-    rm tailscale_1.56.1_amd64.tgz
+    rm tailscale_1.56.1_amd64.tgz && \
+    wget -O /usr/local/bin/cloudflared https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 && \
+    chmod +x /usr/local/bin/cloudflared
 
 # Copy package files
 COPY package*.json ./
@@ -27,6 +29,9 @@ RUN mkdir -p /app/data
 
 # Create tailscale state directory
 RUN mkdir -p /var/lib/tailscale
+
+# Create cloudflared config directory
+RUN mkdir -p /etc/cloudflared
 
 # Set environment
 ENV NODE_ENV=production
